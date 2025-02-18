@@ -14,7 +14,7 @@
 #define LED_PIN_RED 13
 #define LED_PIN_GREEN 11
 #define MAX_RESOLUTION 4095
-#define OFFSET 50
+#define OFFSET 300
 #define I2C_PORT i2c1
 #define I2C_SDA 14
 #define I2C_SCL 15
@@ -127,6 +127,11 @@ int main()
         adc_select_input(1); //ler o canal 1
         uint16_t read_joy_vrx = adc_read();
         controlar_led(read_joy_vrx, LED_PIN_RED, 1997); 
-        
+                    
+        ssd1306_fill(&ssd, false);  
+        //controla o movimendo do quadrado no display
+        ssd1306_rect(&ssd, 56 - ((abs(read_joy_vry - 512) / 64) % 57), (abs(read_joy_vrx - 256) / 32) % 120, 8, 8, true, true);
+        sleep_ms(10);
+        ssd1306_send_data(&ssd);
     }
 }
