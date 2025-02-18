@@ -25,6 +25,10 @@ static volatile uint32_t last_time_joy = 0;
 static volatile uint32_t last_time_a = 0;
 static volatile bool pwm_state = true;
 static ssd1306_t ssd; 
+static volatile uint16_t rect_width = 128;
+static volatile uint16_t rect_height = 64;
+static volatile uint16_t rect_left = 0;
+static volatile uint16_t rect_top = 0;
 
 void config_pwm(int pin) {
     gpio_set_function(pin, GPIO_FUNC_PWM);
@@ -51,16 +55,16 @@ void gpio_irq_handler(uint gpio, uint32_t events) {
     if (gpio == BUTTON_JOY && current_time - last_time_joy > 200000) {
         gpio_put(LED_PIN_GREEN, !gpio_get(LED_PIN_GREEN));
 
-        if (gpio_get(LED_PIN_GREEN)) {
-            ssd1306_fill(&ssd, false);
-            ssd1306_send_data(&ssd);            
-            ssd1306_rect(&ssd, 0, 0, 128, 64, true, false);    
-            ssd1306_send_data(&ssd);       
+        if (gpio_get(LED_PIN_GREEN)) {           
+            rect_width = 110;    
+            rect_height = 55;
+            rect_left = 9;
+            rect_top = 4;
         } else {
-            ssd1306_fill(&ssd, false);
-            ssd1306_send_data(&ssd);            
-            ssd1306_rect(&ssd, 4, 9, 110, 55, true, false);    
-            ssd1306_send_data(&ssd);
+            rect_width = 128;    
+            rect_height = 64;
+            rect_left = 0;
+            rect_top = 0;
         }
 
         last_time_joy = current_time;
@@ -127,11 +131,16 @@ int main()
         adc_select_input(1); //ler o canal 1
         uint16_t read_joy_vrx = adc_read();
         controlar_led(read_joy_vrx, LED_PIN_RED, 1997); 
-                    
+
+        //controla o movimendo do quadrado no display            
         ssd1306_fill(&ssd, false);  
-        //controla o movimendo do quadrado no display
         ssd1306_rect(&ssd, 56 - ((abs(read_joy_vry - 512) / 64) % 57), (abs(read_joy_vrx - 256) / 32) % 120, 8, 8, true, true);
-        sleep_ms(10);
+        
+        //desenha a borda
+        ssd1306_rect(&ssd, rect_top, rect_left, rect_width, rect_height, true, false); 
+
         ssd1306_send_data(&ssd);
+
+
     }
 }
